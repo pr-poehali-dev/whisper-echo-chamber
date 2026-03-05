@@ -32,7 +32,6 @@ const Scene = () => {
       uniform float uTime;
       varying vec2 vUv;
 
-      // Simple noise function
       float random(vec2 st) {
         return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
       }
@@ -50,34 +49,20 @@ const Scene = () => {
 
       void main() {
         vec2 uv = vUv;
-
-        // Depth-based displacement
         float depth = texture2D(uDepthMap, uv).r;
         vec2 displacement = depth * uPointer * 0.01;
         vec2 distortedUv = uv + displacement;
-
-        // Base texture
         vec4 baseColor = texture2D(uTexture, distortedUv);
-
-        // Create scanning effect
         float aspect = ${WIDTH}.0 / ${HEIGHT}.0;
         vec2 tUv = vec2(uv.x * aspect, uv.y);
         vec2 tiling = vec2(120.0);
         vec2 tiledUv = mod(tUv * tiling, 2.0) - 1.0;
-
         float brightness = noise(tUv * tiling * 0.5);
         float dist = length(tiledUv);
         float dot = smoothstep(0.5, 0.49, dist) * brightness;
-
-        // Flow effect based on progress
         float flow = 1.0 - smoothstep(0.0, 0.02, abs(depth - uProgress));
-
-        // Red scanning overlay
         vec3 mask = vec3(dot * flow * 10.0, 0.0, 0.0);
-
-        // Combine effects
         vec3 final = baseColor.rgb + mask;
-
         gl_FragColor = vec4(final, 1.0);
       }
     `
@@ -114,8 +99,8 @@ const Scene = () => {
 }
 
 export const Hero3DWebGL = () => {
-  const titleWords = "Synapse AI".split(" ")
-  const subtitle = "Нейроинтерфейсы нового поколения."
+  const titleWords = "Artel Мебель".split(" ")
+  const subtitle = "Кухни и шкафы, которые живут в вашем доме."
   const [visibleWords, setVisibleWords] = useState(0)
   const [subtitleVisible, setSubtitleVisible] = useState(false)
   const [delays, setDelays] = useState<number[]>([])
@@ -153,42 +138,45 @@ export const Hero3DWebGL = () => {
                 key={index}
                 className={index < visibleWords ? "fade-in" : ""}
                 style={{
-                  animationDelay: `${index * 0.13 + (delays[index] || 0)}s`,
-                  opacity: index < visibleWords ? undefined : 0,
+                  opacity: index < visibleWords ? 1 : 0,
+                  animationDelay: `${delays[index] || 0}s`,
                 }}
               >
-                {word}
+                {index === 1 ? <span className="text-red-500">{word}</span> : word}
               </div>
             ))}
           </div>
         </div>
-        <div className="text-xs md:text-xl xl:text-2xl 2xl:text-3xl mt-2 overflow-hidden text-white font-bold max-w-4xl mx-auto text-center px-4">
-          <div
-            className={subtitleVisible ? "fade-in-subtitle" : ""}
-            style={{
-              animationDelay: `${titleWords.length * 0.13 + 0.2 + subtitleDelay}s`,
-              opacity: subtitleVisible ? undefined : 0,
-            }}
-          >
-            {subtitle}
-          </div>
+
+        <div
+          className={`mt-6 text-base md:text-xl lg:text-2xl font-light font-geist text-gray-300 text-center max-w-2xl normal-case ${subtitleVisible ? "fade-in" : ""}`}
+          style={{
+            opacity: subtitleVisible ? 1 : 0,
+            animationDelay: `${subtitleDelay}s`,
+          }}
+        >
+          {subtitle}
+        </div>
+
+        <div
+          className={`mt-10 flex flex-col sm:flex-row gap-4 pointer-events-auto ${subtitleVisible ? "fade-in" : ""}`}
+          style={{
+            opacity: subtitleVisible ? 1 : 0,
+            animationDelay: `${(subtitleDelay || 0) + 0.3}s`,
+          }}
+        >
+          <button className="bg-red-500 hover:bg-red-600 text-white font-geist font-semibold px-8 py-3 transition-colors duration-200 normal-case text-base">
+            Заказать замер
+          </button>
+          <button className="border border-white/30 hover:border-red-500 text-white font-geist px-8 py-3 transition-colors duration-200 normal-case text-base">
+            Смотреть каталог
+          </button>
         </div>
       </div>
 
-      <Canvas
-        flat
-        gl={{
-          antialias: true,
-          alpha: false,
-          powerPreference: "high-performance",
-        }}
-        camera={{ position: [0, 0, 1] }}
-        style={{ background: "#000000" }}
-      >
+      <Canvas className="h-full w-full" camera={{ position: [0, 0, 5] }}>
         <Scene />
       </Canvas>
     </div>
   )
 }
-
-export default Hero3DWebGL
